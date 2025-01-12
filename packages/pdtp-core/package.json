@@ -1,0 +1,27 @@
+{
+	"name": "@pdtp/core",
+	"version": "0.0.2",
+	"description": "",
+	"private": false,
+	"scripts": {
+		"build": "vite build && tsc -b",
+		"fmt": "biome format --write",
+		"lint": "biome lint && tsc -b"
+	},
+	"files": ["dist"],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js"
+		}
+	},
+	"keywords": [],
+	"author": "pdtp",
+	"license": "MIT",
+	"devDependencies": {
+		"@biomejs/biome": "catalog:",
+		"typescript": "catalog:",
+		"vite": "catalog:"
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"include-component-in-tag": true,
+	"include-v-in-tag": true,
+	"tag-separator": "@",
+	"separate-pull-requests": true,
+	"packages": {
+		"@pdtp/core": {
+			"path": "./packages/pdtp-core",
+			"release-type": "node"
+		},
+		"@pdtp/react": {
+			"path": "./packages/pdtp-react",
+			"release-type": "node"
+		}
+	},
+	"$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+}

@@ -1,0 +1,35 @@
+{
+	"name": "@pdtp/react",
+	"version": "0.0.2",
+	"description": "",
+	"private": false,
+	"scripts": {
+		"build": "vite build && tsc -b",
+		"fmt": "biome format --write",
+		"lint": "biome lint && tsc -b"
+	},
+	"files": ["dist"],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js"
+		}
+	},
+	"keywords": [],
+	"author": "pdtp",
+	"license": "MIT",
+	"dependencies": {
+		"@pdtp/core": "workspace:*",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "catalog:",
+		"@types/react": "^19.0.2",
+		"@types/react-dom": "^19.0.2",
+		"@vitejs/plugin-react": "^4.3.4",
+		"typescript": "catalog:",
+		"vite": "catalog:"
+	}
+}
