@@ -1,4 +1,4 @@
 {
-	"@pdtp/core": "0.0.1",
-	"@pdtp/react": "0.0.1"
+	"packages/pdtp-core": "0.0.1",
+	"packages/pdtp-react": "0.0.1"
 }
