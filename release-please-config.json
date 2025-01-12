@@ -4,12 +4,10 @@
 	"tag-separator": "@",
 	"separate-pull-requests": true,
 	"packages": {
-		"@pdtp/core": {
-			"path": "./packages/pdtp-core",
+		"packages/pdtp-core": {
 			"release-type": "node"
 		},
-		"@pdtp/react": {
-			"path": "./packages/pdtp-react",
+		"packages/pdtp-react": {
 			"release-type": "node"
 		}
 	},
