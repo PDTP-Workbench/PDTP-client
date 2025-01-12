@@ -46,9 +46,9 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 								Page:{pageData.page}
 							</p>
 
-							{pageData.texts.map((t, idx) => (
+							{pageData.texts.map((t) => (
 								<div
-									key={idx}
+									key={t.font}
 									style={{
 										zIndex: t.z,
 										position: "absolute",
@@ -64,9 +64,9 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 								</div>
 							))}
 
-							{pageData.images.map((img, idx) => (
+							{pageData.images.map((img) => (
 								<img
-									key={idx}
+									key={img.url}
 									src={img.url}
 									alt="pdtp-image"
 									style={{
