@@ -8,7 +8,9 @@
 		"fmt": "biome format --write",
 		"lint": "biome lint && tsc -b"
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
