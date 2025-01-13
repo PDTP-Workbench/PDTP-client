@@ -7,6 +7,15 @@ export default defineConfig({
 			formats: ["es", "cjs"],
 			fileName: "index",
 		},
+		rollupOptions: {
+			external: ["react", "react-dom"],
+			output: {
+				globals: {
+					react: "React",
+					"react-dom": "ReactDOM",
+				},
+			},
+		},
 	},
 	resolve: {
 		preserveSymlinks: true,
