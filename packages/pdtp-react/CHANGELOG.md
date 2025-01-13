@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3](https://github.com/PDTP-Workbench/PDTP-client/compare/react@v0.0.2...react@v0.0.3) (2025-01-13)
+
+
+### Bug Fixes
+
+* react bundle to external package ([2fc0a85](https://github.com/PDTP-Workbench/PDTP-client/commit/2fc0a854eeb2f910c74ce5b4330321b50cfcbe70))
+
 ## [0.0.2](https://github.com/PDTP-Workbench/PDTP-client/compare/react-v0.0.1...react@v0.0.2) (2025-01-12)
 
 
