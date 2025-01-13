@@ -74,8 +74,8 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 										zIndex: img.meta.z,
 										left: `${img.meta.x}px`,
 										top: `${pageData.height - img.meta.y}px`,
-										width: `${img.meta.width}px`,
-										height: `${img.meta.height}px`,
+										width: `${img.meta.dw}px`,
+										height: `${img.meta.dh}px`,
 										translate: "0 -100%",
 									}}
 								/>

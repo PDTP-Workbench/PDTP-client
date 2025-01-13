@@ -59,3 +59,59 @@ export async function createPngWithAlpha(
 		img.src = url;
 	});
 }
+
+export const bitmapToPngBlob = (
+	width: number,
+	height: number,
+	pixelData: Uint8Array,
+): Promise<Blob> => {
+	return new Promise((resolve, reject) => {
+		let uint8Data: Uint8Array;
+		if (pixelData instanceof ArrayBuffer) {
+			uint8Data = new Uint8Array(pixelData);
+		} else if (pixelData instanceof Uint8Array) {
+			uint8Data = pixelData;
+		} else {
+			reject(
+				new Error(
+					"pixelData は Uint8Array または ArrayBuffer でなければなりません。",
+				),
+			);
+			return;
+		}
+
+		// Uint8ClampedArray に変換
+		const clampedData = new Uint8ClampedArray(
+			uint8Data.buffer,
+			uint8Data.byteOffset,
+			uint8Data.byteLength,
+		);
+
+		// Canvas要素を作成
+		const canvas: HTMLCanvasElement = document.createElement("canvas");
+		canvas.width = width;
+		canvas.height = height;
+
+		// 2Dコンテキストを取得
+		const ctx = canvas.getContext("2d");
+		if (!ctx) {
+			reject(new Error("2Dコンテキストの取得に失敗しました。"));
+			return;
+		}
+
+		// ImageDataオブジェクトを作成
+		const imageData = new ImageData(clampedData, width, height);
+
+		// Canvasにピクセルデータを描画
+		ctx.putImageData(imageData, 0, 0);
+
+		// PNG形式のBlobを生成
+		canvas.toBlob((blob) => {
+			if (blob) {
+				resolve(blob);
+			} else {
+				reject(new Error("Blobの生成に失敗しました。"));
+			}
+		}, "image/png");
+	});
+};

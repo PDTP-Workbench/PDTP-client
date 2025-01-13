@@ -29,9 +29,12 @@ export interface ImageMetadata {
 	z: number; // z-index
 	width: number; // px単位
 	height: number; // px単位
+	dw: number; // px単位
+	dh: number; // px単位
 	length: number; // 画像本体データのバイト数
 	maskLength: number; // 透過マスク画像データのバイト数
 	page: number; // ページ番号
+	ext: string; // 画像の拡張子
 }
 
 export interface FontMetadata {

@@ -1,4 +1,4 @@
-import { createPngWithAlpha } from "../helpers/imageUtils";
+import { bitmapToPngBlob, createPngWithAlpha } from "../helpers/imageUtils";
 import type {
 	FontMetadata,
 	ImageMetadata,
@@ -104,27 +104,65 @@ export class PdtpClient {
 						// 画像バイトを切り出して Blob化
 						const imageData = buffer.slice(0, imageLength);
 						buffer = buffer.slice(imageLength);
-						const image = new Blob([imageData], { type: "image/jpeg" });
+						if (json.ext === "jpg") {
+							const image = new Blob([imageData], { type: "image/jpeg" });
 
-						// マスクがあるかどうか
-						if (json.maskLength === 0) {
-							// マスクなしならそのまま通知
+							// マスクがあるかどうか
+							if (json.maskLength === 0) {
+								// マスクなしならそのまま通知
+								onData({ type: "image", data: json, blob: image });
+								continue;
+							}
+
+							// マスクあり => マスクぶんが揃うまで読み込む
+							while (buffer.length < json.maskLength) {
+								const { done, value } = await reader.read();
+								if (done) break;
+								buffer = new Uint8Array([...buffer, ...value]);
+							}
+							const maskData = buffer.slice(0, json.maskLength);
+							buffer = buffer.slice(json.maskLength);
+
+							// createPngWithAlpha で合成
+							const maskImage = await createPngWithAlpha(image, maskData);
+							onData({ type: "image", data: json, blob: maskImage });
+						} else {
+							const maskLength = json.maskLength;
+							// マスクあり => マスクぶんが揃うまで読み込む
+							if (maskLength > 0) {
+								while (buffer.length < json.maskLength) {
+									const { done, value } = await reader.read();
+									if (done) break;
+									buffer = new Uint8Array([...buffer, ...value]);
+								}
+							}
+							const maskData = buffer.slice(0, json.maskLength);
+							buffer = buffer.slice(json.maskLength);
+							const alphaApplyImage = [];
+							if (maskData.length > 0) {
+								for (let i = 0; i < imageData.length / 3; i++) {
+									alphaApplyImage.push(imageData[i * 3 + 0]);
+									alphaApplyImage.push(imageData[i * 3 + 1]);
+									alphaApplyImage.push(imageData[i * 3 + 2]);
+									alphaApplyImage.push(maskData[i]);
+								}
+							} else {
+								for (let i = 0; i < imageData.length / 3; i++) {
+									alphaApplyImage.push(imageData[i * 3 + 0]);
+									alphaApplyImage.push(imageData[i * 3 + 1]);
+									alphaApplyImage.push(imageData[i * 3 + 2]);
+									alphaApplyImage.push(255);
+								}
+							}
+
+							const image = await bitmapToPngBlob(
+								json.width,
+								json.height,
+								new Uint8Array(alphaApplyImage),
+							);
+
 							onData({ type: "image", data: json, blob: image });
-							continue;
 						}
-
-						// マスクあり => マスクぶんが揃うまで読み込む
-						while (buffer.length < json.maskLength) {
-							const { done, value } = await reader.read();
-							if (done) break;
-							buffer = new Uint8Array([...buffer, ...value]);
-						}
-						const maskData = buffer.slice(0, json.maskLength);
-						buffer = buffer.slice(json.maskLength);
-
-						// createPngWithAlpha で合成
-						const maskImage = await createPngWithAlpha(image, maskData);
-						onData({ type: "image", data: json, blob: maskImage });
 					} else if (messageType === 0x03) {
 						// fontデータ
 						const decoder = new TextDecoder("utf-8");
