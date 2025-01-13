@@ -42,10 +42,10 @@ importers:
         specifier: workspace:*
         version: link:../pdtp-core
       react:
-        specifier: ^18.3.1
+        specifier: ^18.0
         version: 18.3.1
       react-dom:
-        specifier: ^18.3.1
+        specifier: ^18.0
         version: 18.3.1(react@18.3.1)
     devDependencies:
       '@biomejs/biome':
