@@ -79,29 +79,41 @@ export class PdtpClient {
 				// バッファを前進
 				this.buffer = this.buffer.slice(5 + messageLength);
 
+				if (messageType === 0x00) {
 				try {
-					if (messageType === 0x00) {
 						// pageデータ
 						const json = this.convertPageData(messageData);
 						onData({ type: "page", data: json });
+					} catch (e) {
+						console.error("Failed to parse page data:", e);
+					}
 					} else if (messageType === 0x01) {
+					try {
 						// textデータ
 						const json = this.convertTextData(messageData);
 
 						onData({ type: "text", data: json });
+					} catch (e) {
+						console.error("Failed to parse text data:", e);
+					}
 					} else if (messageType === 0x02) {
+					try {
 						// imageデータ
 						const { json, blob } = await this.convertImageData(messageData);
 						onData({ type: "image", data: json, blob });
+					} catch (e) {
+						console.error("Failed to parse image data:", e);
+					}
 					} else if (messageType === 0x03) {
+					try {
 						// fontデータ
 						const { json, blob } = await this.convertFontData(messageData);
 						onData({ type: "font", data: json, blob });
+					} catch (e) {
+						console.error("Failed to parse font data:", e);
+					}
 					} else {
 						console.error("Unknown message type:", messageType);
-					}
-				} catch (e) {
-					console.error("Failed to parse JSON:", e);
 				}
 			}
 		}
