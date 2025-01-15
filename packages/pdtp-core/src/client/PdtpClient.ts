@@ -2,8 +2,10 @@ import { bitmapToPngBlob, createPngWithAlpha } from "../helpers/imageUtils";
 import type {
 	FontMetadata,
 	ImageMetadata,
+	PageMetadata,
 	PdtpChunkPayload,
 	PdtpRequestOptions,
+	TextMetadata,
 } from "../types";
 
 export type OnPdtpDataCallback = (chunk: PdtpChunkPayload) => void;
@@ -12,6 +14,10 @@ export class PdtpClient {
 	private file: string;
 	private headers?: HeadersInit;
 	private abortController?: AbortController;
+	private buffer: Uint8Array = new Uint8Array();
+	private reader: ReadableStreamDefaultReader<
+		Uint8Array<ArrayBufferLike>
+	> | null = null;
 
 	constructor(options: PdtpRequestOptions) {
 		this.file = options.file;
@@ -43,9 +49,9 @@ export class PdtpClient {
 		if (!reader) {
 			throw new Error("Failed to get reader from response body.");
 		}
+		this.reader = reader;
 
 		// 受信バッファ
-		let buffer = new Uint8Array();
 
 		while (true) {
 			// ストリームからデータ読み取り
@@ -54,137 +60,43 @@ export class PdtpClient {
 			if (!value) continue; // null/undefinedの場合スキップ
 
 			// バッファにデータを追加
-			buffer = new Uint8Array([...buffer, ...value]);
+			this.buffer = new Uint8Array([...this.buffer, ...value]);
 
 			// バッファからメッセージを解析
-			while (buffer.length >= 5) {
+			while (this.buffer.length >= 5) {
 				// 先頭5バイト: [ messageType (1byte), messageLength (4byte, BigEndian) ]
-				const messageType = buffer[0];
-				const messageLength = new DataView(buffer.buffer).getUint32(1, false); // BigEndian
+				const messageType = this.buffer[0];
+				const messageLength = new DataView(this.buffer.buffer).getUint32(
+					1,
+					false,
+				); // BigEndian
 
 				// メタデータ(または先頭チャンク)がまだ全て揃っていない場合は読み取りを待つ
-				if (buffer.length < 5 + messageLength) break;
+				if (this.buffer.length < 5 + messageLength) break;
 
 				// メタデータ(＝JSON文字列)部分を切り出す
-				const messageData = buffer.slice(5, 5 + messageLength);
+				const messageData = this.buffer.slice(5, 5 + messageLength);
 				// バッファを前進
-				buffer = buffer.slice(5 + messageLength);
+				this.buffer = this.buffer.slice(5 + messageLength);
 
-				// FIXME: ここで各メッセージタイプに応じて処理を分岐
 				try {
 					if (messageType === 0x00) {
 						// pageデータ
-						const decoder = new TextDecoder("utf-8");
-						const text = decoder.decode(messageData, { stream: true });
-						const json = JSON.parse(text);
+						const json = this.convertPageData(messageData);
 						onData({ type: "page", data: json });
 					} else if (messageType === 0x01) {
 						// textデータ
-						const decoder = new TextDecoder("utf-8");
-						const text = decoder.decode(messageData, { stream: true });
-						const json = JSON.parse(text);
+						const json = this.convertTextData(messageData);
+
 						onData({ type: "text", data: json });
 					} else if (messageType === 0x02) {
 						// imageデータ
-
-						// メタデータ(JSON)を取得
-						const decoder = new TextDecoder("utf-8");
-						const text = decoder.decode(messageData, { stream: true });
-						const json = JSON.parse(text) as ImageMetadata;
-
-						// 画像本体のバイト数を取得
-						const imageLength = json.length;
-
-						// 画像バイナリが揃うまで読み込む
-						while (buffer.length < imageLength) {
-							const { done, value } = await reader.read();
-							if (done) break;
-							buffer = new Uint8Array([...buffer, ...value]);
-						}
-						// 画像バイトを切り出して Blob化
-						const imageData = buffer.slice(0, imageLength);
-						buffer = buffer.slice(imageLength);
-						if (json.ext === "jpg") {
-							const image = new Blob([imageData], { type: "image/jpeg" });
-
-							// マスクがあるかどうか
-							if (json.maskLength === 0) {
-								// マスクなしならそのまま通知
-								onData({ type: "image", data: json, blob: image });
-								continue;
-							}
-
-							// マスクあり => マスクぶんが揃うまで読み込む
-							while (buffer.length < json.maskLength) {
-								const { done, value } = await reader.read();
-								if (done) break;
-								buffer = new Uint8Array([...buffer, ...value]);
-							}
-							const maskData = buffer.slice(0, json.maskLength);
-							buffer = buffer.slice(json.maskLength);
-
-							// createPngWithAlpha で合成
-							const maskImage = await createPngWithAlpha(image, maskData);
-							onData({ type: "image", data: json, blob: maskImage });
-						} else {
-							const maskLength = json.maskLength;
-							// マスクあり => マスクぶんが揃うまで読み込む
-							if (maskLength > 0) {
-								while (buffer.length < json.maskLength) {
-									const { done, value } = await reader.read();
-									if (done) break;
-									buffer = new Uint8Array([...buffer, ...value]);
-								}
-							}
-							const maskData = buffer.slice(0, json.maskLength);
-							buffer = buffer.slice(json.maskLength);
-							const alphaApplyImage = [];
-							if (maskData.length > 0) {
-								for (let i = 0; i < imageData.length / 3; i++) {
-									alphaApplyImage.push(imageData[i * 3 + 0]);
-									alphaApplyImage.push(imageData[i * 3 + 1]);
-									alphaApplyImage.push(imageData[i * 3 + 2]);
-									alphaApplyImage.push(maskData[i]);
-								}
-							} else {
-								for (let i = 0; i < imageData.length / 3; i++) {
-									alphaApplyImage.push(imageData[i * 3 + 0]);
-									alphaApplyImage.push(imageData[i * 3 + 1]);
-									alphaApplyImage.push(imageData[i * 3 + 2]);
-									alphaApplyImage.push(255);
-								}
-							}
-
-							const image = await bitmapToPngBlob(
-								json.width,
-								json.height,
-								new Uint8Array(alphaApplyImage),
-							);
-
-							onData({ type: "image", data: json, blob: image });
-						}
+						const { json, blob } = await this.convertImageData(messageData);
+						onData({ type: "image", data: json, blob });
 					} else if (messageType === 0x03) {
 						// fontデータ
-						const decoder = new TextDecoder("utf-8");
-						const text = decoder.decode(messageData, { stream: true });
-						const json = JSON.parse(text) as FontMetadata;
-
-						// フォントバイナリの長さ
-						const fontLength = json.length;
-
-						// bufferが足りなければ追加read
-						while (buffer.length < fontLength) {
-							const { done, value } = await reader.read();
-							if (done) break;
-							buffer = new Uint8Array([...buffer, ...value]);
-						}
-						const fontData = buffer.slice(0, fontLength);
-						buffer = buffer.slice(fontLength);
-
-						const font = new Blob([fontData], {
-							type: "font/ttf",
-						});
-						onData({ type: "font", data: json, blob: font });
+						const { json, blob } = await this.convertFontData(messageData);
+						onData({ type: "font", data: json, blob });
 					} else {
 						console.error("Unknown message type:", messageType);
 					}
@@ -192,6 +104,116 @@ export class PdtpClient {
 					console.error("Failed to parse JSON:", e);
 				}
 			}
+		}
+	}
+	private convertPageData(messageData: Uint8Array): PageMetadata {
+		const decoder = new TextDecoder("utf-8");
+		const text = decoder.decode(messageData, { stream: true });
+		const json = JSON.parse(text);
+		return json as PageMetadata;
+	}
+
+	private convertTextData(messageData: Uint8Array): TextMetadata {
+		const decoder = new TextDecoder("utf-8");
+		const text = decoder.decode(messageData, { stream: true });
+		const json = JSON.parse(text);
+		return json as TextMetadata;
+	}
+
+	private async convertImageData(
+		messageData: Uint8Array,
+	): Promise<{ json: ImageMetadata; blob: Blob }> {
+		// メタデータ(JSON)を取得
+		const decoder = new TextDecoder("utf-8");
+		const text = decoder.decode(messageData, { stream: true });
+		const json = JSON.parse(text) as ImageMetadata;
+
+		// 画像本体のバイト数を取得
+		const imageLength = json.length;
+
+		// 画像バイナリが揃うまで読み込む
+		await this.waitForBuffer(imageLength);
+		// 画像バイトを切り出して Blob化
+		const imageData = this.extractBuffer(imageLength);
+		if (json.ext === "jpg") {
+			const image = new Blob([imageData], { type: "image/jpeg" });
+
+			// マスクがあるかどうか
+			if (json.maskLength === 0) {
+				// マスクなしならそのまま通知
+				return { json, blob: image };
+			}
+
+			// マスクあり => マスクぶんが揃うまで読み込む
+			await this.waitForBuffer(json.maskLength);
+			const maskData = this.extractBuffer(json.maskLength);
+
+			// createPngWithAlpha で合成
+			const maskImage = await createPngWithAlpha(image, maskData);
+			return { json, blob: maskImage };
+		}
+		const maskLength = json.maskLength;
+		// マスクあり => マスクぶんが揃うまで読み込む
+		await this.waitForBuffer(maskLength);
+		const maskData = this.extractBuffer(maskLength);
+		const alphaApplyImage = [];
+		if (maskData.length > 0) {
+			for (let i = 0; i < imageData.length / 3; i++) {
+				alphaApplyImage.push(imageData[i * 3 + 0]);
+				alphaApplyImage.push(imageData[i * 3 + 1]);
+				alphaApplyImage.push(imageData[i * 3 + 2]);
+				alphaApplyImage.push(maskData[i]);
+			}
+		} else {
+			for (let i = 0; i < imageData.length / 3; i++) {
+				alphaApplyImage.push(imageData[i * 3 + 0]);
+				alphaApplyImage.push(imageData[i * 3 + 1]);
+				alphaApplyImage.push(imageData[i * 3 + 2]);
+				alphaApplyImage.push(255);
+			}
+		}
+
+		const image = await bitmapToPngBlob(
+			json.width,
+			json.height,
+			new Uint8Array(alphaApplyImage),
+		);
+		return { json, blob: image };
+	}
+
+	private async convertFontData(messageData: Uint8Array): Promise<{
+		json: FontMetadata;
+		blob: Blob;
+	}> {
+		const decoder = new TextDecoder("utf-8");
+		const text = decoder.decode(messageData, { stream: true });
+		const json = JSON.parse(text) as FontMetadata;
+
+		// フォントバイナリの長さ
+		const fontLength = json.length;
+
+		// bufferが足りなければ追加read
+		await this.waitForBuffer(fontLength);
+		const fontData = this.extractBuffer(fontLength);
+
+		const font = new Blob([fontData], {
+			type: "font/ttf",
+		});
+		return { json, blob: font };
+	}
+
+	private extractBuffer(length: number): Uint8Array {
+		const buf = this.buffer.slice(0, length);
+		this.buffer = this.buffer.slice(length);
+		return buf;
+	}
+	private async waitForBuffer(length: number): Promise<void> {
+		if (this.buffer.length >= length) return;
+		if (!this.reader) throw new Error("Reader is not initialized");
+		while (this.buffer.length < length) {
+			const { done, value } = await this.reader.read();
+			if (done) break;
+			this.buffer = new Uint8Array([...this.buffer, ...value]);
 		}
 	}
 }
