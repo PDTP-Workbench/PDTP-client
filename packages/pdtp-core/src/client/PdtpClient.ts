@@ -146,33 +146,36 @@ export class PdtpClient {
 
 			// マスクあり => マスクぶんが揃うまで読み込む
 			await this.waitForBuffer(json.maskLength);
-			const maskData = this.extractBuffer(json.maskLength);
+			const maskData = await this.decompressWithDeflate(
+				this.extractBuffer(json.maskLength),
+			);
 
 			// createPngWithAlpha で合成
 			const maskImage = await createPngWithAlpha(image, maskData);
 			return { json, blob: maskImage };
 		}
+		const decompressedImage = await this.decompressWithDeflate(imageData);
 		const maskLength = json.maskLength;
 		// マスクあり => マスクぶんが揃うまで読み込む
 		await this.waitForBuffer(maskLength);
-		const maskData = this.extractBuffer(maskLength);
+		const maskraw = this.extractBuffer(maskLength);
+		const maskData = await this.decompressWithDeflate(maskraw);
 		const alphaApplyImage = [];
 		if (maskData.length > 0) {
-			for (let i = 0; i < imageData.length / 3; i++) {
-				alphaApplyImage.push(imageData[i * 3 + 0]);
-				alphaApplyImage.push(imageData[i * 3 + 1]);
-				alphaApplyImage.push(imageData[i * 3 + 2]);
+			for (let i = 0; i < decompressedImage.length / 3; i++) {
+				alphaApplyImage.push(decompressedImage[i * 3 + 0]);
+				alphaApplyImage.push(decompressedImage[i * 3 + 1]);
+				alphaApplyImage.push(decompressedImage[i * 3 + 2]);
 				alphaApplyImage.push(maskData[i]);
 			}
 		} else {
-			for (let i = 0; i < imageData.length / 3; i++) {
-				alphaApplyImage.push(imageData[i * 3 + 0]);
-				alphaApplyImage.push(imageData[i * 3 + 1]);
-				alphaApplyImage.push(imageData[i * 3 + 2]);
+			for (let i = 0; i < decompressedImage.length / 3; i++) {
+				alphaApplyImage.push(decompressedImage[i * 3 + 0]);
+				alphaApplyImage.push(decompressedImage[i * 3 + 1]);
+				alphaApplyImage.push(decompressedImage[i * 3 + 2]);
 				alphaApplyImage.push(255);
 			}
 		}
-
 		const image = await bitmapToPngBlob(
 			json.width,
 			json.height,
@@ -215,5 +218,15 @@ export class PdtpClient {
 			if (done) break;
 			this.buffer = new Uint8Array([...this.buffer, ...value]);
 		}
+	}
+	private async decompressWithDeflate(data: Uint8Array): Promise<Uint8Array> {
+		const ds = new DecompressionStream("deflate");
+		const stream = new ReadableStream({
+			start(controller) {
+				controller.enqueue(data);
+				controller.close();
+			},
+		}).pipeThrough(ds);
+		return new Uint8Array(await new Response(stream).arrayBuffer());
 	}
 }
