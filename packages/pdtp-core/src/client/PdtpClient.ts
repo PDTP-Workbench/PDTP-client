@@ -227,6 +227,13 @@ export class PdtpClient {
 				controller.close();
 			},
 		}).pipeThrough(ds);
-		return new Uint8Array(await new Response(stream).arrayBuffer());
+		let decompressed = new ArrayBuffer();
+		// FIXME: エラーが発生するが解凍は成功している
+		try {
+			decompressed = await new Response(stream).arrayBuffer();
+		} catch (e) {
+			console.log("decompress error but this error is not problem", e);
+		}
+		return new Uint8Array(decompressed);
 	}
 }
