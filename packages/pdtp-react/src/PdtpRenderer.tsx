@@ -80,6 +80,25 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 									}}
 								/>
 							))}
+							{pageData.paths.map((path) => (
+								<svg
+									key={path.path}
+									style={{
+										position: "absolute",
+										zIndex: path.z,
+									}}
+									fill={path.fillColor}
+									width={pageData.width}
+									height={pageData.height}
+								>
+									<title>hoge</title>
+									<path
+										d={path.path}
+										fill={path.fillColor}
+										stroke={path.strokeColor}
+									/>
+								</svg>
+							))}
 						</div>
 					);
 				})}

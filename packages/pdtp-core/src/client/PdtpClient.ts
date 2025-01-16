@@ -80,14 +80,14 @@ export class PdtpClient {
 				this.buffer = this.buffer.slice(5 + messageLength);
 
 				if (messageType === 0x00) {
-				try {
+					try {
 						// pageデータ
 						const json = this.convertPageData(messageData);
 						onData({ type: "page", data: json });
 					} catch (e) {
 						console.error("Failed to parse page data:", e);
 					}
-					} else if (messageType === 0x01) {
+				} else if (messageType === 0x01) {
 					try {
 						// textデータ
 						const json = this.convertTextData(messageData);
@@ -96,7 +96,7 @@ export class PdtpClient {
 					} catch (e) {
 						console.error("Failed to parse text data:", e);
 					}
-					} else if (messageType === 0x02) {
+				} else if (messageType === 0x02) {
 					try {
 						// imageデータ
 						const { json, blob } = await this.convertImageData(messageData);
@@ -104,7 +104,7 @@ export class PdtpClient {
 					} catch (e) {
 						console.error("Failed to parse image data:", e);
 					}
-					} else if (messageType === 0x03) {
+				} else if (messageType === 0x03) {
 					try {
 						// fontデータ
 						const { json, blob } = await this.convertFontData(messageData);
@@ -112,8 +112,16 @@ export class PdtpClient {
 					} catch (e) {
 						console.error("Failed to parse font data:", e);
 					}
-					} else {
-						console.error("Unknown message type:", messageType);
+				} else if (messageType === 0x04) {
+					try {
+						// pathデータ
+						const json = this.convertPathData(messageData);
+						onData({ type: "path", data: json });
+					} catch (e) {
+						console.error("Failed to parse path data:", e);
+					}
+				} else {
+					console.error("Unknown message type:", messageType);
 				}
 			}
 		}
@@ -215,6 +223,13 @@ export class PdtpClient {
 			type: "font/ttf",
 		});
 		return { json, blob: font };
+	}
+
+	private convertPathData(messageData: Uint8Array) {
+		const decoder = new TextDecoder("utf-8");
+		const text = decoder.decode(messageData, { stream: true });
+		const json = JSON.parse(text);
+		return json;
 	}
 
 	private extractBuffer(length: number): Uint8Array {

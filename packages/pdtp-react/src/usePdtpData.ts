@@ -1,6 +1,7 @@
 // packages/react/src/usePdtpData.ts
 import {
 	type ImageMetadata,
+	type PathMetadata,
 	type PdtpChunkPayload,
 	PdtpClient,
 	type TextMetadata,
@@ -13,6 +14,7 @@ type PageData = {
 	height: number;
 	texts: Array<TextMetadata>;
 	images: Array<{ meta: ImageMetadata; url: string }>;
+	paths: Array<PathMetadata>;
 };
 
 interface UsePdtpDataProps {
@@ -68,6 +70,7 @@ export function usePdtpData(props: UsePdtpDataProps) {
 						height: meta.height,
 						texts: [],
 						images: [],
+						paths: [],
 					},
 				}));
 				return;
@@ -121,6 +124,27 @@ export function usePdtpData(props: UsePdtpDataProps) {
 				// ただしフォント名指定がある場合はそこに合わせる
 				// 必要があれば setState で管理する
 				return;
+			}
+			case "path": {
+				const meta = chunk.data;
+				setPages((prev) => {
+					const existing = prev[meta.page] ?? {
+						page: meta.page,
+						width: 0,
+						height: 0,
+						texts: [],
+						images: [],
+						paths: [],
+					};
+					return {
+						...prev,
+						[meta.page]: {
+							...existing,
+							paths: [...existing.paths, meta],
+						},
+					};
+				});
+				break;
 			}
 			default:
 				return;

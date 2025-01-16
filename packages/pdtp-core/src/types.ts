@@ -4,6 +4,7 @@ export enum PdtpDataType {
 	TEXT = 0x01,
 	IMAGE = 0x02,
 	FONT = 0x03,
+	PATH = 0x04,
 	ERROR = 0xff,
 }
 
@@ -42,6 +43,18 @@ export interface FontMetadata {
 	length: number; // フォントデータのバイト数
 }
 
+export interface PathMetadata {
+	x: number;
+	y: number;
+	z: number;
+	width: number;
+	height: number;
+	path: string;
+	fillColor: string;
+	strokeColor: string;
+	page: number;
+}
+
 export type PdtpChunkPayload =
 	| {
 			type: "page";
@@ -60,6 +73,10 @@ export type PdtpChunkPayload =
 			type: "font";
 			data: FontMetadata;
 			blob: Blob; // フォントのBlob
+	  }
+	| {
+			type: "path";
+			data: PathMetadata;
 	  };
 
 // -------------------------------------------
