@@ -111,6 +111,7 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 								);
 							})}
 							{pageData.paths.map((path) => (
+								// biome-ignore lint/a11y/noSvgWithoutTitle: 意味のあるsvgではないため
 								<svg
 									key={path.path}
 									style={{
@@ -121,7 +122,6 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 									width={pageData.width}
 									height={pageData.height}
 								>
-									<title>hoge</title>
 									<path
 										d={path.path}
 										fill={path.fillColor}
