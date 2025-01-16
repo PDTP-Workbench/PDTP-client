@@ -64,22 +64,52 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 								</div>
 							))}
 
-							{pageData.images.map((img) => (
-								<img
-									key={img.url}
-									src={img.url}
-									alt="pdtp-image"
-									style={{
-										position: "absolute",
-										zIndex: img.meta.z,
-										left: `${img.meta.x}px`,
-										top: `${pageData.height - img.meta.y}px`,
-										width: `${img.meta.dw}px`,
-										height: `${img.meta.dh}px`,
-										translate: "0 -100%",
-									}}
-								/>
-							))}
+							{pageData.images.map((img) => {
+								if (img.meta.clipPath === "") {
+									return (
+										<img
+											key={img.url}
+											src={img.url}
+											alt="pdtp-image"
+											style={{
+												position: "absolute",
+												zIndex: img.meta.z,
+												left: `${img.meta.x}px`,
+												top: `${pageData.height - img.meta.y}px`,
+												width: `${img.meta.dw}px`,
+												height: `${img.meta.dh}px`,
+												translate: "0 -100%",
+											}}
+										/>
+									);
+								}
+								return (
+									<svg
+										key={img.url}
+										style={{
+											position: "absolute",
+											zIndex: img.meta.z,
+										}}
+										width={pageData.width}
+										height={pageData.height}
+									>
+										<title>
+											{img.meta.x}, {img.meta.y}
+										</title>
+										<clipPath id={img.url}>
+											<path d={img.meta.clipPath} />
+										</clipPath>
+										<image
+											x={img.meta.x}
+											y={pageData.height - img.meta.y - img.meta.dh}
+											width={img.meta.dw}
+											height={img.meta.dh}
+											href={img.url}
+											clipPath={`url(#${img.url})`}
+										/>
+									</svg>
+								);
+							})}
 							{pageData.paths.map((path) => (
 								<svg
 									key={path.path}
