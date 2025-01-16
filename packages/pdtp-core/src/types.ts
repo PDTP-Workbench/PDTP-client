@@ -36,7 +36,7 @@ export interface ImageMetadata {
 	maskLength: number; // 透過マスク画像データのバイト数
 	page: number; // ページ番号
 	ext: string; // 画像の拡張子
-	clopPath: string; // クリッピングパス
+	clipPath: string; // クリッピングパス
 }
 
 export interface FontMetadata {
