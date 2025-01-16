@@ -22,6 +22,7 @@ export interface TextMetadata {
 	fontSize: number; // px単位
 	font: string; // フォントID
 	page: number; // ページ番号
+	color: string; // テキストの色
 }
 
 export interface ImageMetadata {

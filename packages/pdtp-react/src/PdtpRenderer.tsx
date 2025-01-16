@@ -54,7 +54,7 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 										position: "absolute",
 										left: `${t.x}px`,
 										top: `${pageData.height - t.y}px`,
-										color: "black",
+										color: t.color,
 										fontSize: `${t.fontSize}px`,
 										translate: "0 -75%",
 										fontFamily: t.font,
