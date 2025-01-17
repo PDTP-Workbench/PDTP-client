@@ -84,6 +84,7 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 									);
 								}
 								return (
+									// biome-ignore lint/a11y/noSvgWithoutTitle: 意味のあるsvgではないため
 									<svg
 										key={img.url}
 										style={{
@@ -93,9 +94,6 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 										width={pageData.width}
 										height={pageData.height}
 									>
-										<title>
-											{img.meta.x}, {img.meta.y}
-										</title>
 										<clipPath id={img.url}>
 											<path d={img.meta.clipPath} />
 										</clipPath>
