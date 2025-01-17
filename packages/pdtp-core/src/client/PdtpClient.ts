@@ -43,6 +43,7 @@ export class PdtpClient {
 		// fetch開始
 		const response = await fetch(this.file, {
 			signal: this.abortController?.signal,
+			headers: this.headers,
 		});
 		const reader = response.body?.getReader();
 
