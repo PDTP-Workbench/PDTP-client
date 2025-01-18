@@ -33,19 +33,6 @@ export const PdtpRenderer: FC<PdtpRendererProps> = ({
 								backgroundColor: "white",
 							}}
 						>
-							<p
-								style={{
-									zIndex: 1000,
-									position: "absolute",
-									left: "0",
-									top: "0",
-									color: "black",
-									fontSize: "16px",
-								}}
-							>
-								Page:{pageData.page}
-							</p>
-
 							{pageData.texts.map((t) => (
 								<div
 									key={t.font}
