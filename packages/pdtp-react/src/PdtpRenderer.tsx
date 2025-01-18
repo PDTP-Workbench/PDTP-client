@@ -1,27 +1,15 @@
 import type { FC } from "react";
 import { usePdtpData } from "./usePdtpData";
 
-interface PdtpRendererProps {
-	file: string;
-	base?: number;
-	start?: number;
-	end?: number;
-}
-
 /**
  * PDTP Protocol で取得したデータを簡易的に描画するRenderer例
  */
-export const PdtpRenderer: FC<PdtpRendererProps> = ({
-	file,
-	base,
-	start,
-	end,
-}) => {
-	const pages = usePdtpData({ file, base, start, end });
+export const PdtpRenderer: FC = () => {
+	const pages = usePdtpData();
 
 	return (
 		<div style={{ display: "flex", gap: "12px", flexDirection: "row" }}>
-			<div style={{ display: "flex", gap: "12px", flexDirection: "column" }}>
+			<div style={{ display: "flex", flexDirection: "column" }}>
 				{Object.values(pages).map((pageData) => {
 					return (
 						<div

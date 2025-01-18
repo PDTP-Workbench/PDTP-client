@@ -7,6 +7,7 @@ import {
 	type TextMetadata,
 } from "@pdtp/core";
 import { useEffect, useMemo, useState } from "react";
+import { usePdtpContext } from "./PdtpProvider";
 
 type PageData = {
 	page: number;
@@ -17,30 +18,24 @@ type PageData = {
 	paths: Array<PathMetadata>;
 };
 
-interface UsePdtpDataProps {
-	file: string;
-	base?: number;
-	start?: number;
-	end?: number;
-}
-
 /**
  * chunkedデータを取得し、ページごとにまとめた状態を返す
  */
-export function usePdtpData(props: UsePdtpDataProps) {
+export function usePdtpData() {
 	const [pages, setPages] = useState<Record<number, PageData>>({});
+	const { requestOptions } = usePdtpContext();
 
 	// PdtpClient 生成
 	const client = useMemo(() => {
 		return new PdtpClient({
-			file: props.file,
+			file: requestOptions.file,
 			headers: {
-				base: props.base,
-				start: props.start,
-				end: props.end,
+				base: requestOptions.headers?.base,
+				start: requestOptions.headers?.start,
+				end: requestOptions.headers?.end,
 			},
 		});
-	}, [props.file, props.base, props.start, props.end]);
+	}, [requestOptions]);
 
 	useEffect(() => {
 		let mounted = true;
