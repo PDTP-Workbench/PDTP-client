@@ -30,9 +30,9 @@ export function usePdtpData() {
 		return new PdtpClient({
 			file: requestOptions.file,
 			headers: {
-				base: requestOptions.headers?.base,
-				start: requestOptions.headers?.start,
-				end: requestOptions.headers?.end,
+				base: requestOptions?.base,
+				start: requestOptions?.start,
+				end: requestOptions?.end,
 			},
 		});
 	}, [requestOptions]);
