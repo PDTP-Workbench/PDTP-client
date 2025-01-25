@@ -28,7 +28,7 @@ export const PdtpRenderer: FC = () => {
 										zIndex: t.z,
 										position: "absolute",
 										left: `${t.x}px`,
-										top: `${pageData.height - t.y}px`,
+											top: `${t.y}px`,
 										color: t.color,
 										fontSize: `${t.fontSize}px`,
 										translate: "0 -75%",
