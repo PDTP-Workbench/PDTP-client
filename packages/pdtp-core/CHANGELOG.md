@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/PDTP-Workbench/PDTP-client/compare/core@v0.1.0...core@v0.1.1) (2025-02-01)
+
+
+### Bug Fixes
+
+* apply pdtp header on data request ([2fc6809](https://github.com/PDTP-Workbench/PDTP-client/commit/2fc68099abd1e95fb8e4ca37eaf2b08a2fcfb1d3))
+
 ## [0.1.0](https://github.com/PDTP-Workbench/PDTP-client/compare/core-v0.0.1...core@v0.1.0) (2025-01-16)
 
 
