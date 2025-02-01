@@ -56,6 +56,6 @@ jobs:
 
       - name: publish
         if: ${{ steps.release.outputs.releases_created }} == 'true'
-        run: pnpm -r publish
+        run: pnpm -r publish --filter "./packages/**"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
