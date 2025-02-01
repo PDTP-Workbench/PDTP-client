@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.1](https://github.com/PDTP-Workbench/PDTP-client/compare/react@v0.1.0...react@v0.1.1) (2025-02-01)
+
+
+### Bug Fixes
+
+* header apply on create client ([7c7b047](https://github.com/PDTP-Workbench/PDTP-client/commit/7c7b047b20d9ea17b5850618018c0d2276903ed9))
+* pdtp client instance option ([957b15e](https://github.com/PDTP-Workbench/PDTP-client/commit/957b15e1c218364fa1d77e202c2c57f59faeb92d))
+* remove option from pdtp render ([361053e](https://github.com/PDTP-Workbench/PDTP-client/commit/361053eb036b71b76b063f641796f63cf6500b21))
+* text render y axis ([99f24a4](https://github.com/PDTP-Workbench/PDTP-client/commit/99f24a4711770451a2b0acbd5d907826c27a996e))
+
 ## [0.1.0](https://github.com/PDTP-Workbench/PDTP-client/compare/react@v0.0.3...react@v0.1.0) (2025-01-16)
 
 
