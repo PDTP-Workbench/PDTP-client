@@ -241,12 +241,20 @@ export class PdtpClient {
 	private async waitForBuffer(length: number): Promise<void> {
 		if (this.buffer.length >= length) return;
 		if (!this.reader) throw new Error("Reader is not initialized");
-		while (this.buffer.length < length) {
+		let newBuffer = this.buffer;
+		while (newBuffer.length < length) {
 			const { done, value } = await this.reader.read();
 			if (done) break;
-			this.buffer = new Uint8Array([...this.buffer, ...value]);
+
+			const merged = new Uint8Array(newBuffer.length + value.length);
+			merged.set(newBuffer, 0);
+			merged.set(value, newBuffer.length);
+			newBuffer = merged;
 		}
+
+		this.buffer = newBuffer;
 	}
+
 	private async decompressWithDeflate(data: Uint8Array): Promise<Uint8Array> {
 		const ds = new DecompressionStream("deflate");
 		const stream = new ReadableStream({
