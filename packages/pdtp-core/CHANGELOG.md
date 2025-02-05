@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/PDTP-Workbench/PDTP-client/compare/core@v0.1.1...core@v0.1.2) (2025-02-05)
+
+
+### Bug Fixes
+
+* optimize buffer handling in PdtpClient ([df6055f](https://github.com/PDTP-Workbench/PDTP-client/commit/df6055f6ff5e14ae7246f0f2acd1b08f84133f40))
+
 ## [0.1.1](https://github.com/PDTP-Workbench/PDTP-client/compare/core@v0.1.0...core@v0.1.1) (2025-02-01)
 
 
